@@ -29,7 +29,7 @@
     '{{HOME}}/first-keepalived-cfg.sh'
   delegate_to: "{{ groups['k8s_haproxy'][0] }}"
 
-- name: Copy Keepalived configuration file script in the first Haproxy server
+- name: Copy Keepalived configuration file script in the second Haproxy server
   template: 
     src: second-keepalived-cfg.sh
     dest: '{{HOME}}/second-keepalived-cfg.sh'
@@ -48,7 +48,7 @@
     sudo systemctl restart haproxy
     sudo systemctl enable haproxy
     sudo systemctl restart keepalived
-    sudo systemctl enable haproxy
+    sudo systemctl enable keepalived
 
 
 
