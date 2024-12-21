@@ -20,17 +20,11 @@
 
 - name: Download etcd & etcdctl binaries from Github
   script: etcd-role/files/etcd-binaries-downoald.sh
-
-- name: Copy systemd unit file for etcd service
-  template: 
-    src: etcd-systemd-unit-file.sh
-    dest: '{{HOME}}/etcd-systemd-unit-file.sh'
-
-- name: Create systemd unit file for etcd service
-  become: true
-  shell: |
-    chmod +x '{{HOME}}/etcd-systemd-unit-file.sh'
-    '{{HOME}}/etcd-systemd-unit-file.sh'
+  
+- name: Generate configuration file
+  template:
+    src: templates/etcd.service.j2
+    dest: "/etc/systemd/system/etcd.service"
 
 - name: Enable and Start etcd service
   become: true

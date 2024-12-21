@@ -1,0 +1,40 @@
+---
+- name: Check if the Kubernates apt key exists
+  stat:
+    path: "{{ k8s.key_local_path }}"
+  register: k8s__apt_key_stat
+
+- name: Add the Kubernates apt key
+  block:
+    - name: Download the Kubic Kubernates key to a temporary file
+      get_url:
+        url: "{{ k8s_.key_url }}"
+        dest: "{{ k8s.key_local_path }}.tmp"
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Dearmor the downloaded GPG key
+      shell: "cat {{ k8s.key_local_path }}.tmp | gpg --dearmor > {{ k8s.key_local_path }}"
+
+    - name: Delete the temporary GPG key
+      file:
+        path: "{{ k8s.key_local_path }}.tmp"
+        state: absent
+  when: not k8s__apt_key_stat.stat.exists
+
+- name: Add Kubernates repository.
+  apt_repository:
+    repo: "{{ k8s_.apt_repo }}"
+    filename: "kubernetes"
+    state: present
+    update_cache: true
+
+- name: Install kubeadm, kubelet, and kubectl
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - kubeadm
+    - kubelet
+    - kubectl # not necessary for workers

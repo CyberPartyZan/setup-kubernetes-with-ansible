@@ -1,7 +1,4 @@
 - hosts: k8s_control_planes:k8s_workers
-  remote_user: jenkins
-  vars:
-    HOME: /home/jenkins
   roles:
     - k8s-prerequisites-role
 
@@ -9,7 +6,9 @@
 - hosts: k8s_haproxy
   remote_user: jenkins
   vars:
-    HOME: /home/jenkins
+    virtual_ip: virtual_ip
+    keepalived:
+      interface: eth1
   roles:
     - haproxy-keepalived-role
 

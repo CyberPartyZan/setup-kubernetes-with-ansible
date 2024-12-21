@@ -1,0 +1,40 @@
+---
+- name: Check if the CRI-O apt key exists
+  stat:
+    path: "{{ cri_o.key_local_path }}"
+  register: cri_o__apt_key_stat
+
+- name: Add the CRI-O apt key
+  block:
+    - name: Download the Kubic CRI-O key to a temporary file
+      get_url:
+        url: "{{ cri_o_.key_url }}"
+        dest: "{{ cri_o.key_local_path }}.tmp"
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Dearmor the downloaded GPG key
+      shell: "cat {{ cri_o.key_local_path }}.tmp | gpg --dearmor > {{ cri_o.key_local_path }}"
+
+    - name: Delete the temporary GPG key
+      file:
+        path: "{{ cri_o.key_local_path }}.tmp"
+        state: absent
+  when: not cri_o__apt_key_stat.stat.exists
+
+- name: Add CRI-O repository.
+  apt_repository:
+    repo: "{{ cri_o_.apt_repo }}"
+    filename: "cri-o"
+    state: present
+    update_cache: true
+
+- name: Install CRI-O
+  apt:
+    name: cri-o
+    state: present
+    
+- name: Start CRI-O
+  ansible.builtin.command:
+    cmd: "systemctl start crio.service"

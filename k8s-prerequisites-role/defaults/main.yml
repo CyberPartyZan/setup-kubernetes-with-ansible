@@ -1,2 +1,14 @@
 ---
-# defaults file for k8s-prerequisites-role
+arch: amd64
+cri_o:
+  version: v1.31
+  key_local_path: /etc/apt/keyrings/cri-o-apt-keyring.gpg
+cri_o_:
+  key_url: https://pkgs.k8s.io/addons:/cri-o:/stable:/{{ cri_o.version }}/deb/Release.key
+  apt_repo: "deb [signed-by={{ cri_o.key_local_path }} arch={{ arch }}] https://pkgs.k8s.io/addons:/cri-o:/stable:/{{ cri_o.version }}/deb/ /"
+k8s:
+  version: v1.31
+  key_local_path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+k8s_:
+  key_url: https://pkgs.k8s.io/core:/stable:/{{ k8s.version }}/deb/Release.key
+  apt_repo: "deb [signed-by={{ k8s.key_local_path }}] https://pkgs.k8s.io/core:/stable:/{{ k8s.version }}/deb/ /"

@@ -1,0 +1,13 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+kubernetesVersion: stable
+controlPlaneEndpoint: "{{ virtual_ip }}:6443"
+etcd:
+    external:
+        endpoints:
+    {% for ip in (groups['k8s_etcd'] | map('extract', hostvars, ['ansible_host']) | list) %}
+    - https://{{ ip }}:2379
+    {% endfor %}
+    caFile: /etc/kubernetes/pki/etcd/ca.pem
+        certFile: /etc/kubernetes/pki/etcd/etcd.pem
+        keyFile: /etc/kubernetes/pki/etcd/etcd-key.pem

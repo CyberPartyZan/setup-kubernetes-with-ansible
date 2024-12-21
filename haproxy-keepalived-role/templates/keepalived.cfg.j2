@@ -1,0 +1,44 @@
+global_defs {
+  notification_email {
+  }
+  router_id LVS_DEVEL
+  vrrp_skip_check_adv_addr
+  vrrp_garp_interval 0
+  vrrp_gna_interval 0
+}
+
+vrrp_script check_apiserver {
+  script "/etc/keepalived/check_apiserver.sh"
+  interval 3
+  weight -2
+  fall 10
+  rise 2
+}
+
+vrrp_instance haproxy-vip {
+  state {% if ansible_host == hostvars[groups['k8s_haproxy'][0]].ansible_host %} MASTER {% else %} BACKUP {% endif %}
+  priority {% if ansible_host == hostvars[groups['k8s_haproxy'][0]].ansible_host %} 100 {% else %} 50 {% endif %}
+  interface {{ keepalived.interface }}                       # Network card
+  virtual_router_id 51
+  advert_int 1
+  authentication {
+    auth_type PASS
+    auth_pass strONg11
+  }
+  unicast_src_ip {{ hostvars[groups['k8s_haproxy'][0]].ansible_host }}     # The IP address of this machine
+  unicast_peer {  # The IP address of peer machines
+{% for host in (groups['k8s_control_planes']) %}
+{% if loop.index != 1 %}
+    {{ hostvars[host].ansible_host }}
+{% endif %}
+{% endfor %}
+  }
+
+  virtual_ipaddress {
+    {{ virtual_ip }}/24                  # The VIP address
+  }
+
+  track_script {
+    check_apiserver
+  }
+}
