@@ -110,5 +110,8 @@
   when: inventory_hostname != groups['k8s_control_planes'][0]
 
 
+- name: Install Cilium
+  include_tasks: ./files/Cilium.yml
+  delegate_to: "{{ groups['k8s_control_planes'][0] }}"
 
 

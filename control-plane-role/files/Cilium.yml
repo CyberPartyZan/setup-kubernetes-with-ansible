@@ -1,0 +1,51 @@
+---
+- name: Install Cilium network addon CLI
+  ansible.builtin.command:
+    cmd: "curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt"
+  register: cilium_version
+
+- name: Download Cilium
+  ansible.builtin.command:
+    cmd: "curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/{{ cilium_version.stdout }}/cilium-linux-{{ arch }}.tar.gz{,.sha256sum}"
+
+- name: Check if Cilium archive is fine
+  ansible.builtin.command:
+    cmd: "sha256sum --check cilium-linux-{{ arch }}.tar.gz.sha256sum"
+  register: is_cilium_ok
+  failed_when: "'OK' not in is_cilium_ok.stdout"
+
+- name: Copy Cilium to bin
+  ansible.builtin.command:
+    cmd: "sudo tar xzvfC cilium-linux-{{ arch }}.tar.gz /usr/local/bin"
+
+- name: Remove tmp files
+  ansible.builtin.file:
+    path: "cilium-linux-{{ arch }}.tar.gz"
+    state: absent
+
+- name: Remove tmp files
+  ansible.builtin.file:
+    path: "cilium-linux-{{ arch }}.tar.gz.sha256sum"
+    state: absent
+
+- name: Install Cilium
+  ansible.builtin.command:
+    cmd: "cilium install --version 1.16.5"
+
+- name: Check Cilium status
+  ansible.builtin.command:
+    cmd: "cilium status --wait"
+  register: cilium_status
+
+- name: Display Cilium status
+  ansible.builtin.debug:
+    var: cilium_status.stdout
+
+- name: Run Cilium connectivity test
+  ansible.builtin.command:
+    cmd: "cilium connectivity test"
+  register: connectivity_test
+
+- name: Display connectivity test results
+  ansible.builtin.debug:
+    var: connectivity_test.stdout
