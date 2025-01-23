@@ -35,7 +35,7 @@ vrrp_instance haproxy-vip {
   }
 
   virtual_ipaddress {
-    {{ virtual_ip }}/24                  # The VIP address
+    {{ load_balancer.virtual_ip }}/24                  # The VIP address
   }
 
   track_script {

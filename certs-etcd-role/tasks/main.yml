@@ -1,38 +1,61 @@
 ---
 # tasks file for certs-etcd-role
 
-- name: Gather instance facts
-  setup:
+- name: Create certs directory
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/certs"
+    state: directory
 
-- name: Download cfssl required binaries
-  script: certs-etcd-role/files/cfssl-binaries.sh
+- name: Install CFSSL
+  include_tasks: ./tasks/CFSSL.yml
+
+# - name: Gather instance facts
+#   setup:
+
+# - name: Download cfssl required binaries
+#   script: certs-etcd-role/files/cfssl-binaries.sh
+  
+- name: Generate CA configuration file
+  template:
+    src: templates/ca-config.json
+    dest: "/home/{{ ansible_user }}/certs/ca-config.json"
+  
+- name: Generate CA configuration file
+  template:
+    src: templates/ca-csr.json
+    dest: "/home/{{ ansible_user }}/certs/ca-csr.json"
 
 - name: Create a Certificate Authority (CA)
-  script:  certs-etcd-role/files/generate-ca-cert.sh
+  shell: "cfssl gencert -initca ca-csr.json | cfssljson -bare ca"
+  args:
+    chdir: "/home/{{ ansible_user }}/certs"
   
-- name: Generate configuration file
+- name: Generate etcd configuration file
   template:
     src: templates/etcd-csr.json.j2
-    dest: "/home/{{ user }}/certs/etcd-csr.json"
+    dest: "/home/{{ ansible_user }}/certs/etcd-csr.json"
 
 - name: Create TLS certificates
-  script:  certs-etcd-role/files/create-certs.sh
+  shell: "cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=etcd etcd-csr.json | cfssljson -bare etcd"
+  args:
+    chdir: "/home/{{ ansible_user }}/certs"
 
 - name: Create Kubernetes certificates folder 
   file:
-    path: "/home/{{ user }}/k8s-certs"
+    path: "/home/{{ ansible_user }}/k8s-certs"
     state: directory
 
 - name: Move certs to Home
   become: true
   copy:
-    src: certs/{{ item }}
-    dest: "/home/{{ user }}/k8s-certs"
+    src: "/home/{{ ansible_user }}/certs/{{ item }}"
+    dest: "/home/{{ ansible_user }}/k8s-certs"
+    remote_src: true
   with_items:
   - ca.pem
   - etcd.pem
   - etcd-key.pem
   
 - name: Change Certs files ownership 
-  shell: "command sudo chown {{ user }}:{{ user }} /home/{{ user }}/k8s-certs/*"
+  shell: "command sudo chown {{ ansible_user }}:{{ ansible_user }} /home/{{ ansible_user }}/k8s-certs/*"
     

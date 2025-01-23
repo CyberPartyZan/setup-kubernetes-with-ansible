@@ -8,5 +8,9 @@
 - name: Install K8s
   include_tasks: ./tasks/K8s.yml
 
-# - name: Install Cilium
-#   include_tasks: ./tasks/Cilium.yml
+- name: Add Load Balancer DNS
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '.*{{ load_balancer.dns }}$'
+    line: "{{ load_balancer.virtual_ip }} {{ load_balancer.dns }}"
+    state: present

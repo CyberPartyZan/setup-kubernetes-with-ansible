@@ -1,2 +1,4 @@
 ---
 # vars file for etcd-role
+etcd_version: v3.5.17
+etcd_download_url: "https://github.com/etcd-io/etcd/releases/download/{{ etcd_version }}/etcd-{{ etcd_version }}-linux-amd64.tar.gz"

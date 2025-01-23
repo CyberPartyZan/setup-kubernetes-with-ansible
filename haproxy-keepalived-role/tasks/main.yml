@@ -10,8 +10,8 @@
   copy:
     src: check_apiserver.sh
     dest: /etc/keepalived/check_apiserver.sh
-    owner: {{ ansible_user }}
-    group: {{ ansible_user }}
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
     mode: u=rx,g=r,o=r
     backup: yes
 

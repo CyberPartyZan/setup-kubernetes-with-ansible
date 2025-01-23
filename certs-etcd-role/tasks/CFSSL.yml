@@ -1,0 +1,17 @@
+---
+- name: Install dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - golang-cfssl
+
+- name: Verify cfssl installation
+  command: cfssl version
+  register: cfssl_version
+  changed_when: false
+
+- name: Debug cfssl and cfssljson versions
+  debug:
+    msg:
+      - "CFSSL version: {{ cfssl_version.stdout }}"

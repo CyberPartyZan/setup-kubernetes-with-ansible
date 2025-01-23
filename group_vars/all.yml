@@ -1,1 +1,5 @@
 HOME: /home/me
+load_balancer:
+  virtual_ip: <Virtual-IP>
+  port: <Load-Balancer-Port>
+  dns: load-balancer
